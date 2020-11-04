@@ -18,9 +18,33 @@ namespace SpookLeacher
        
 
         public static string getProxy() {
-            Random _random = new Random();
-            int r = _random.Next(proxycount);
-            return proxies[r];
+            Random random = new Random();
+            try
+            {
+                int r = random.Next(proxycount);
+
+                return proxies[r];
+            }
+            catch { return proxies[0]; }
+        }
+        public static bool isCombo(string combo) {
+
+            string[] s = combo.Split(':');
+            string email = s[0];
+            bool isemail = true;
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                isemail = (addr.Address == email);
+            }
+            catch { isemail = false; }
+
+            if (isemail) {
+                return true;
+            }
+            else{
+                return false;
+            }
         }
     }
 }
