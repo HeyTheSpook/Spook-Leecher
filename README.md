@@ -16,4 +16,6 @@ A simple c# web-scraper / combo leecher using windows forms and the google searc
 -Add differant regex's and allow customs ones<br>
 -Optimize search code to gather more than 100 links per keywords search<br>
 -Optimize efficiency by using more than one thread at a time searching<br>
--Find a way to make the search api not refuse to answer requests for searches(Really don't know about this one. im guessing its bot detection tha ti have to bypass but im not sure)
+
+# Currently Working On
+-Finding proper headers for http requests and proxies so that googles bot detection api doesnt block the leecher (not even sure if its really possible to bypass it, i think leechers like xrisky's just simply ignore the fact that they get blocked not telling the end user that just to make them think its working better than it really is)
