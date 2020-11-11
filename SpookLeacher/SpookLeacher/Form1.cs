@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -27,6 +28,18 @@ namespace SpookLeacher
                 richTextBox3.Invoke((MethodInvoker)delegate { richTextBox3.AppendText(message + "\n"); });//runs this if calling process was in another thread
             else
                 richTextBox3.AppendText(message + "\n");//runs this if it is in th esame thread
+            try
+            {
+                using (StreamWriter writetext = new StreamWriter("log.txt", true))
+                {
+                    writetext.WriteLine(message + " - " + DateTime.Now.ToString());
+                }
+            }
+            catch
+            {
+                Thread.Sleep(1);
+                console(message);
+            }
         }
         public void linkout(string message)
         {
@@ -41,6 +54,18 @@ namespace SpookLeacher
                 resultsBox.Invoke((MethodInvoker)delegate { resultsBox.AppendText(message + "\n"); });//runs this if calling process was in another thread
             else
                 resultsBox.AppendText(message + "\n");//runs this if it is in th esame thread
+            try
+            {
+                using (StreamWriter writetext = new StreamWriter("combos.txt", true))
+                {
+                    writetext.WriteLine(message + " - " + DateTime.Now.ToString());
+                }
+            }
+            catch
+            {
+                Thread.Sleep(1);
+                newCombo(message);
+            }
         }
 
         private void richTextBox2_TextChanged(object sender, EventArgs e)
@@ -87,10 +112,12 @@ namespace SpookLeacher
             progressBar1.Maximum = psize;
             manager.run = true;
             new Thread(new ThreadStart(linkscrape)).Start();
+
         }
 
         private void linkscrape()
         {
+            ThreadPool.SetMaxThreads(manager.threadct, manager.threadct);
             foreach (string key in manager.keywords)
             {
                 if (manager.run)
@@ -100,29 +127,40 @@ namespace SpookLeacher
                     {
                         using (var req = new HttpRequest())
                         {
+                            console("scraping key " + key + "...");
                             int it = 0;
 
-                            console("scraping key " + key + "...");
-                            console("Randomizing UserAgent...");
-                            req.UserAgentRandomize();
+                         //   req.AddHeader("accept-language", "en-US,en;q=0.9");
+                          //  req.AddHeader("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+                          //  req.AddHeader("upgrade-insecure-requests", "1");
+                          //  req.AddHeader("sec-fetch-site", "none");
+                          //  req.AddHeader("sec-fetch-mode", "navigate");
+                          //  req.AddHeader("sec-fetch-dest", "document");
+                           // req.AddHeader("authority", "www.google.com");
+                           // req.AddHeader("accept-encoding", "gzip, deflate, br");
+                           // req.AddHeader("scheme", "https");
+                           // req.AddHeader(HttpHeader.Referer, "https://google.com");
+                            
+                            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36";
                             req.UseCookies = false;
 
                             if (manager.proxycount > 0)
                                 req.Proxy = HttpProxyClient.Parse(manager.getProxy());
 
-                            console("Requesting...");
                             string html = "";
                             try
                             {
                                 html = req.Get("https://www.google.com/search?q=" + key + manager.time + "&num=100&as_sitesearch=https://pastebin.com/").ToString();
-                                console("Request Success!");
                                 it++;
                             }
-                            catch
+                            catch(HttpException ex)
                             {
-                                more = false;
-                                console("Request failed!");
-                                manager.run = false;
+                                console(ex.ToString());
+                                console("Request failed on: " + key);
+                                manager.badreq++;
+                                label13.Invoke((MethodInvoker)delegate { label13.Text = manager.badreq.ToString(); });
+                                label13.Text = manager.badreq.ToString();
+                                
                             }
                             string[] splits = html.Split('<');
                             foreach (string s in splits)
@@ -131,7 +169,8 @@ namespace SpookLeacher
                                 if (String.IsNullOrEmpty(url)) { }
                                 else if (url.Contains("pastebin.com/") && !url.Contains("/u/") && !url.Contains("gmail") && !url.Contains("=") && !url.Contains("search") && !url.Contains("chrome") && !url.Contains("roblox") && !url.Contains("google") && !url.Contains("how") && !url.Contains("free") && !url.Contains("accounts"))
                                 {
-                                    linkout(url);
+                                    var filterthread = new Thread(() => linkfilter(url));
+                                    filterthread.Start();
                                 }
 
                             }
@@ -139,14 +178,22 @@ namespace SpookLeacher
                         }
                     }
                 }
-                progressBar1.Invoke((MethodInvoker)delegate { progressBar1.Value++; });
+                try
+                {
+                    progressBar1.Invoke((MethodInvoker)delegate { progressBar1.Value++; });
+                }
+                catch { progressBar1.Invoke((MethodInvoker)delegate { progressBar1.Value = 0; }); }
+                Random r = new Random(1000);
+                Thread.Sleep(r.Next()+1);
             }
             console("Link scrape complete!");
 
             MessageBox.Show("Link Scrape Complete!\n" + manager.linkct + " Links Found");
             progressBar1.Invoke((MethodInvoker)delegate { progressBar1.Value = 0; });
             manager.run = false;
-
+            if ((manager.keywords.Length/2) <= manager.badreq) {
+                MessageBox.Show("Potentially high amounts of errors detected. This means you lost on alot of potential links and in turn potentially lost many many accounts. Please switch your vpn area, or use a new list of proxies.");
+            }
         }
 
         private void richTextBox4_TextChanged(object sender, EventArgs e)
@@ -203,10 +250,7 @@ namespace SpookLeacher
 
         private void button1_Click(object sender, EventArgs e)
         {
-            HashSet<string> set = new HashSet<string>(richTextBox4.Lines);
-            string[] result = new string[set.Count];
-            set.CopyTo(result);
-            richTextBox4.Lines = result;
+
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
@@ -248,8 +292,11 @@ namespace SpookLeacher
                     using (var req = new HttpRequest())
                     {
                         console("checking page " + newurl + "...");
-                        console("Randomizing UserAgent...");
-                        req.UserAgentRandomize();
+                        req.ConnectTimeout = 5;
+                        req.AddHeader("accept-language" , "en-US,en;q=0.9");
+                        req.AddHeader("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+                        req.AddHeader("dnt", "1");
+                        req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36";
                         req.UseCookies = false;
 
                         if (manager.proxycount > 0)
@@ -262,9 +309,10 @@ namespace SpookLeacher
                             html = req.Get(newurl).ToString();
                             console("Request Success!");
                         }
-                        catch
+                        catch(HttpException ex)
                         {
                             console("Request failed!");
+                            console(ex.ToString());
                         }
                         html.Replace("\r", "\n");
                         string[] words = html.Replace(" ", "\n").Split('\n');
@@ -285,6 +333,49 @@ namespace SpookLeacher
             MessageBox.Show("Combo Scrape Complete!\n" + manager.results + " Combo's Found");
             progressBar1.Invoke((MethodInvoker)delegate { progressBar1.Value = 0; });
             manager.run = false;
+        }
+        private void linkfilter(string url) {
+            if (manager.run)
+            {
+                using (var req2 = new HttpRequest())
+                {
+                    if (manager.proxycount > 0)
+                        HttpProxyClient.Parse(manager.getProxy());
+                    req2.UserAgentRandomize();
+                    try
+                    {
+                        string test = req2.Get(url).ToString();
+                        if (!test.Contains("This paste has been deemed potentially harmful"))
+                        {
+                            linkout(url);
+                        }
+                    }
+                    catch
+                    {
+                        linkout(url);
+                    }
+                }
+            }
+        }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+            label11.Text = trackBar1.Value.ToString();
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            HashSet<string> set = new HashSet<string>(richTextBox4.Lines);
+            string[] result = new string[set.Count];
+            set.CopyTo(result);
+            richTextBox4.Lines = result;
+            console("Duplicate links removed");
+
+            using (StreamWriter writetext = new StreamWriter("good links.txt", true))
+            {
+                writetext.WriteLine(Environment.NewLine +richTextBox4.Text + " - " + DateTime.Now.ToString());
+            }
+
         }
     }
 }

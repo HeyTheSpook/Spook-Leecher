@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,6 +12,8 @@ namespace SpookLeacher
         public static int proxycount = 0;
         public static int results = 0;
         public static int linkct = 0;
+        public static int badreq = 0;
+        public static int threadct = 100;
         public static bool run = false;
         public static string time = "&tbs=qdr:w";
         public static string[] keywords = { "@gmail.com", "@yahoo.com", "@aol.com", "@hotmail.com", "@yandex.com", "@yahoo.co.uk", "@walla.co.il" };
