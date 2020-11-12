@@ -1,5 +1,8 @@
 # Spook-Leecher
 A simple c# web-scraper / combo leecher using windows forms and the google search api to make combo lists without the use of sketchy tools, and just has everything you need in one convenient place. I am in the learning stages of learning and much of my code shouldn't be seen as "good practice". Lots of work needs to be done before I would consider this program to be anywhwere near complete, but I would love any feedback or support that you have to offer. And this project is taking heavy inspiration from the B3RAP-Leecher by AnErrupTion
+<br>=======================<br>
+=https://github.com/AnErrupTion =
+<br>=======================
 
 # Completed
 -Automated the process of collecting http proxies, as well as makes them completely optional and not needed.<br>
