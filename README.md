@@ -1,5 +1,5 @@
 # Spook-Leecher
-A simple c# web-scraper / combo leecher using windows forms and the google search api to make combo lists without the use of sketchy tools, and just has everything you need in one convenient place. I am in the learning stages of learning and much of my code shouldn't be seen as "good practice". Lots of work needs to be done before I would consider this program to be anywhwere near complete, but I would love any feedback or support that you have to offer.
+A simple c# web-scraper / combo leecher using windows forms and the google search api to make combo lists without the use of sketchy tools, and just has everything you need in one convenient place. I am in the learning stages of learning and much of my code shouldn't be seen as "good practice". Lots of work needs to be done before I would consider this program to be anywhwere near complete, but I would love any feedback or support that you have to offer. And this project is taking heavy inspiration from the B3RAP-Leecher by AnErrupTion
 
 # Completed
 -Automated the process of collecting http proxies, as well as makes them completely optional and not needed.<br>
@@ -18,4 +18,4 @@ A simple c# web-scraper / combo leecher using windows forms and the google searc
 -Optimize efficiency by using more than one thread at a time searching<br>
 
 # Currently Working On
--Finding proper headers for http requests and proxies so that googles bot detection api doesnt block the leecher (not even sure if its really possible to bypass it, i think leechers like xrisky's just simply ignore the fact that they get blocked not telling the end user that just to make them think its working better than it really is)
+-Finding proper headers for http requests and proxies so that googles bot detection api doesnt block the leecher (not even sure if its really possible to bypass it)
